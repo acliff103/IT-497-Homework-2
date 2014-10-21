@@ -1,0 +1,190 @@
+\documentclass{article}
+
+\begin{document}
+
+
+\title {Homes Selling for a Gain or a Loss } 
+\author { Ashley Noelle Clifford
+\\ School of Information Technology 
+\\ Illinois State University
+\\
+\texttt{ancliff@ilstu.edu}}
+\date{\today} 
+\maketitle
+
+\section{Introduction}
+
+  Home values may appreciate or depreciate over the course of time depending on various factors. The neighborhood, surrounding schools, population diversity, and general condition of the house all come into play when estimating the value of a home. Furthermore, the housing market index is a critical determining factor for estimating how much a house will be sold or purchased for. The housing market is the general market of houses being purchased and sold by owners or through brokers. Although there is no physical exchange for the market, the general performance of the housing market index is often referred to when discussing the sale or purchase of a home. If the market is doing well, homes are selling at higher values, and there may be a large demand for real estate. The results of increased demand may be a gain in value for selling the homes. If the market is not doing well, there may be less demand and therefore less prospective buyers. Due to decreased demand, the results may be homes selling for less than they are valued at, which is considered a loss.
+
+The following data explores the percentage of homes sold for a gain or a loss monthly in Illinois from 1998 to present day 2014. 
+\section{Cleaning the Data}
+
+In order to analyze the data, it must first be obtained and uploaded into R. The following data was dowloaded from Quandl and saved locally.
+<<>>=
+"https://www.quandl.com/ZILLOW/MSTATE_PCTOFHOMESSELLINGFORLOSS
+_ALLHOMES_ILLINOIS-Zillow-Metrics-Sold-for-Loss-Illinois
+https://www.quandl.com/ZILLOW/MSTATE_PCTOFHOMESSELLINGFORGAIN
+_ALLHOMES_ILLINOIS-Zillow-Metrics-Sold-for-Gain-Illinois"
+@
+
+The loss data is read in via the "read.csv" command. The value column is renamed to "loss" by the rename command. The loss data has two columns, date and loss, which display the percentage value lost by the sale of the house for a specific date. The library ggplot is loaded in order to display the data graphically, and the reshape2 library is loaded so that the data can be reshaped properly.
+\\\\
+Code Chunk1: Reading in the loss data
+<<>>=
+library(ggplot2)
+library(reshape2)
+
+#read in the loss data
+lossData <- read.csv(file="loss.csv", header=TRUE, sep=",")
+colnames(lossData) <- c("date", "Value")
+lossData <- plyr::rename(x= lossData, replace = c("Value" = "loss"))
+names(lossData)
+head(lossData, 3)
+@
+
+
+The gain data is read. The gain data is read in via the "read.csv" command. The value column is renamed to "gain" by the rename command. The gain data has two columns, date and gain, which display the percentage value gained by the sale of the house for a specific date.
+\\\\
+Code Chunk2: Reading in the gain data
+<<>>=
+#read in the gain data
+gainData <- read.csv(file="gain.csv", header=TRUE, sep=",")
+colnames(gainData)<-c("date","Value")
+names(gainData)
+gainData <- plyr::rename(x= gainData, replace = c("Value" = "gain"))
+head(gainData, 3)
+@
+
+The gain and loss data is then combined together into one data frame named combinedData. This is done by merging the data together via the merge command and then melting it by the melt command. The data is merged by the date variable, and the gain and loss values are ordered together by date.
+\\\\\
+Code Chunk3: Combining the gain and loss data
+<<>>=
+#combine the gain and loss data into a data frame
+combinedDataMerge<-merge(gainData, lossData, by = "date" )
+combinedData <-melt(data = combinedDataMerge, id.vars = "date")
+combinedData <- combinedData[order(combinedData$date, combinedData$variable), ]
+@
+
+The date factor is then set to a date format by the as.Date command. This is done so that the graph can be plotted properly.
+\\\\
+Code Chunk4: Setting the date formatting
+<<>>=
+#set date format
+combinedData$date<-as.Date(combinedData$date, format="%m/%d/%Y")
+@
+
+\section{Exploring the data}
+combinedData is a combination of the gain and loss data. The data has a date factor, a variable factor with two levels-gain and loss, and a value factor. The structure command is used to display summary statistics of the data set.
+\\\\
+Code Chunk5: Structure of the data set
+<<>>=
+#display the structure of the the combinedData dataframe
+str(combinedData)
+@
+
+combinedData is of the type dataframe.
+\\\\
+Code Chunk6: Class of the data set
+<<>>=
+#display the class of the the combinedData dataframe
+class(combinedData)
+@
+
+combinedData has 199 gain and loss data values, spanning from the years 1998-2014, ranging from the lowest loss of .05951 to the highest gain of 99.4049. The minimum value for both gains and losses is 0, and the maximum value for both gains and losses is 100.
+\\\\
+Code Chunk7: Summary statics of the data
+<<>>=
+#display the summary of the the combinedData dataframe
+summary(combinedData)
+@
+
+The structure of date data is date, with a format of yyyy/dd/mm, and a range of 1998-2014.
+\\\\
+Code Chunk7: Structure of the date
+<<>>=
+#Display the structure of the date data
+str(combinedData$date)
+@
+
+The class type of date data is date
+\\\\
+Code Chunk8: Class of the Date
+<<>>=
+#Display the data type of the data data
+class(combinedData$date)
+@
+
+The structure of the variable data is a factor with 2 levels-gain and loss. The variable data displays whether a home sold for a gain or a loss.
+\\\\
+Code Chunk9: Structure of the variable data.
+<<>>=
+#display the structure of the the variable factor
+str(combinedData$variable)
+@
+
+
+The class type of the variable data is factor.
+\\\\
+Code Chunk10: Class of the Date
+<<>>=
+#display the class of the the variable factor
+class(combinedData$variable)
+@
+
+
+The structure of the value data is a number with a minimum of 0 and a maximum of 100. The value data represents the numeric value at which the home was sold.
+\\\\
+Code Chunk11: Structure of the value data
+<<>>=
+#Display the structure of the value data
+str(combinedData$value)
+@
+
+The class type of value data is numeric.
+\\\\
+Code Chunk12: Class of the value data
+<<>>=
+#Display the data type of the value data
+class(combinedData$value)
+@
+
+
+\section{Results}
+
+Table1 displays the data after it has been melted together via date.
+\\\\
+Table1: Gain and Loss data melted together by date
+<<>>=
+head(combinedData, 3)
+@
+
+
+Table2: Gain and Loss data
+<<>>=
+combinedDataMerge
+@
+Table2 displays the gain and loss data for each specific date. There are 199 dates, one date from each month for the years 1998-2014. Each date has a specific gain or loss percentage value, which displays how much value was lost or gained by the sale of homes.
+\\\
+
+
+\begin{figure}
+\begin{center}
+<<label=fig1,fig=TRUE,echo=TRUE>>=
+p <- ggplot(data=combinedData, aes(x=date, y=value, group=variable, colour=variable)) 
+p + geom_line()
+@
+\end{center}
+\caption{Line Graph of Homes Sold for a Gain or Loss}
+\label{fig:one}
+\end{figure}
+
+Figure 1 below shows the percentage of homes that were sold for a gain or loss during 1998-2014. From 1998 until about 2007, homes were selling for high gains between 90 and 99 percent, with little loss. From mid 2007 onward, there was a sharp decline in the percentage of gains, and subsequently a sharp increase in the percentage of losses on the sale of homes. This data coincides with the "housing bubble burst," which occured in August of 2008. Due to increased home prices from the period of 1997 onward, a multitude of new homes were being built and sold, along with an explosive growth in exburbs. After the real estate market correction of 2006-2007, new residential home sales fell and there was an increase in foreclosure rates. Analysts predicted that as a result, home prices could experience a decline of upwards of 50 percent in some areas. Figure 1 shows this loss in value from 2008 up until mid 2012. According to Figure 1, present day housing price values are slowly on the rise, as the percentage gains from selling a home are increasing. This may be due to the economy recovering and the housing market index rising.
+\\\
+Code Chunk 14: ggplot of the gain and loss data. The figure is given a label and a caption. The graph is plotted via the ggplot command. The data is from the combinedDate data set, the x-axis is the date, the y-axis is the value, and the data is grouped by variable. Each variable is distinguished by color.
+
+
+
+
+
+
+\end{document}
